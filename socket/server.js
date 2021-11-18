@@ -58,9 +58,20 @@ io.on('connection', socket => {
                         {prefix: 'C', answer: 'Sally', correct: false},
                         {prefix: 'D', answer: 'Tim', correct: false}
                     ],
-                    playerAnswers: {},//Object of username: answer.
+                    playerAnswers: [],//Object of username: answer.
                     current: true
                 },
+                {
+                    question: 'How old are you?',
+                    answers: [
+                        { prefix: 'A', answer: '13', correct: false },
+                        { prefix: 'B', answer: '43', correct: true },
+                        { prefix: 'C', answer: '18', correct: false },
+                        { prefix: 'D', answer: '12', correct: false }
+                    ],
+                    playerAnswers: [],//Object of username: answer.
+                    current: false
+                }
             ],
             isStarted: false,
             isEnded: false
@@ -92,6 +103,7 @@ io.on('connection', socket => {
         allGames[roomId].isStarted = true;
     });
 
+    // answer = {username: "Bob", answer: "C"}
     socket.on('AnswerQuestion', (answer) => {
         /** 
          * @todo Add the answer/score when the Q is answered
@@ -100,6 +112,39 @@ io.on('connection', socket => {
          * io.to(roomId).emit('EndGame', ...);
          * Somehow save scores to database
          */
+
+        //  io.to(roomId).emit('UpdateGame', allGames[roomId])
+
+        allGames[roomId].questions[0].playerAnswers.push(answer);
+        
+        // If all players in the room have answered each question
+        if (allGames[roomId].questions[0].playerAnswers.length === allGames[roomId].players.length) {
+            allGames[roomId].questions[0].current = false;
+            allGames[roomId].questions[1].current = true;
+        }
+
+        // If players answer is right, update the player's score
+        // let correctAnswer = allGames[roomId].questions[0].answers.find((answer) => {
+        //     return answer.correct == true;
+        // })
+
+        // for(let i=0; i < allGames[roomId].players.length; i++) {
+        //     let player = allGames[roomId].players[i].username;
+
+        //     console.log("player name:", player)
+            
+        //     let playerAnswer = allGames[roomId].questions[0].playerAnswers.find((answer) => {
+        //         return answer.username == player;
+        //     })
+        //     console.log("player's answer: ", playerAnswer);
+
+        //     // if(correctAnswer.answer === playerAnswer)
+        // }
+        
+
+        io.to(roomId).emit('UpdateGame', allGames[roomId]);
+
+        console.log("question answered");
     });
 
     socket.on("disconnect", socket => { // runs when client disconnects
